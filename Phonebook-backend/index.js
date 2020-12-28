@@ -1,6 +1,6 @@
-const { response } = require('express');
 const express = require('express');
 const app = express();
+const { performance } = require('perf_hooks');
 
 app.use(express.json());
 
@@ -26,11 +26,6 @@ let phonebook = {
       "name": "Mary Poppendieck",
       "number": "39-23-6423122"
     },
-    {
-      "id": 5,
-      "name": "Fierdy Pandu",
-      "number": "0821-2728-5152"
-    }
   ]
 }
 
@@ -70,6 +65,41 @@ app.delete('/api/persons/:id', (req, res) => {
   phonebook.persons = phonebook.persons.filter((person) => person.id !== id);
 
   res.status(204).end();
+});
+
+const generateId = () => {
+  // https://gist.github.com/gordonbrander/2230317
+  // return Math.random().toString(36).substr(2, 9);
+  // return Math.random().toString().slice(2).substring(0, 9) + Date.now();
+  return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+}
+
+app.post('/api/persons', (req, res) => {
+  const body = req.body;
+
+  const personDbName = phonebook.persons.find((person) => person.name === body.name);
+
+  if (personDbName) {
+    return res.status(400).json({
+      error: "Name must be unique."
+    })
+  }
+  else if (!body) {
+    return res.status(400).json({
+      error: "Content missing. Must provide name and number."
+    })
+  }
+
+  const person = {
+    id: generateId(),
+    name: body.name,
+    number: body.number
+  }
+
+  phonebook.persons = phonebook.persons.concat(person);
+  console.log(person);
+  console.log(phonebook);
+  res.json(body);
 });
 
 const PORT = 3001;
