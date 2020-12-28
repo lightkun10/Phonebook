@@ -1,8 +1,11 @@
 const express = require('express');
 const app = express();
 const { performance } = require('perf_hooks');
+const morgan = require('morgan');
 
 app.use(express.json());
+
+app.use(morgan('tiny'));
 
 let phonebook = {
   "persons": [
