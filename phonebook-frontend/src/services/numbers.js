@@ -1,6 +1,6 @@
 import axios from 'axios';
 // const baseUrl = 'http://localhost:3001/api/persons';
-const baseUrl = 'https://phonebook-backend-pndu.herokuapp.com/api/persons';
+const baseUrl = '/api/persons';
 
 const getAll = () => {
   const request = axios.get(baseUrl);
@@ -13,11 +13,6 @@ const create = (newObject) => {
 }
 
 const deleteNumber = (id) => axios.delete(`${baseUrl}/${id}`);
-
-// const update = (updatePerson, id) => {  
-//   const request = axios.put(`${baseUrl}/${id}`, updatePerson);
-//   return request.then((response) => response.data);
-// }
 
 const update = (updatePerson) => {  
   const request = axios.put(`${baseUrl}/${updatePerson.id}`, updatePerson);
