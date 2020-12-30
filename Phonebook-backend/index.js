@@ -71,21 +71,14 @@ app.get('/api/persons/:id', (req, res) => {
   Person.findById(req.params.id).then((p) => {
     res.json(p);
   })
-
-  // const person = phonebook.persons.find((person) => person.id === id);
-
-  // if (person) {
-  //   res.json(person);
-  // } else {
-  //   res.status(404).end();
-  // }
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  phonebook.persons = phonebook.persons.filter((person) => person.id !== id);
-
-  res.status(204).end();
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 const generateId = () => {
@@ -98,30 +91,36 @@ const generateId = () => {
 app.post('/api/persons', (req, res) => {
   const body = req.body;
 
-  // const personDbName = phonebook.persons.find((person) => person.name === body.name);
-
-  // if (personDbName) {
-  //   return res.status(400).json({
-  //     error: "Name must be unique."
-  //   })
-  // }
-  // else if (!body) {
-  //   return res.status(400).json({
-  //     error: "Content missing. Must provide name and number."
-  //   })
-  // }
-
   const person = new Person({
     name: body.name,
     number: body.number
   });
 
-  person.save().then((savedPerson) => res.json(savedPerson));
-
-  // phonebook.persons = phonebook.persons.concat(person);
   // console.log(person);
-  // console.log(phonebook);
+  person.save().then((savedPerson) => res.json(savedPerson));
 });
+
+/********************
+*** Middlewares 
+*********************/
+
+// handler of requests with unknown endpoint
+const unknownEndPoint = (req, res) => {
+  res.status(404).send({ error: 'unknown endpoint' });
+}
+app.use(unknownEndPoint);
+
+// handler of requests with result to errors
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  }
+
+  next(error);
+}
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
