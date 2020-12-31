@@ -52,13 +52,13 @@ const App = () => {
             setPersons(persons.map((person) => person.id !== returnedPerson.id ? person : returnedPerson));
           })
           .catch((error) => {
-            console.log('An error occured\n', error)
+            console.log('An error occured\n', error);
             setMessageType('failed__delete');
             setMessage(`Information of ${updatePerson.name} has already been removed from server`);
             setTimeout(() => {
               setMessage(null);
               setMessageType(null);
-            }, 4000)
+            }, 4000);
           });
         setNewName('');
         setNewNumber('');
@@ -67,8 +67,6 @@ const App = () => {
       numberService
         .create(newPerson)
         .then((returnedPerson) => {
-          // If promise for adding person fulfilled, 
-          // show the success message.
           setMessageType('success');
           setMessage(`Added ${returnedPerson.name}`);
           setTimeout(() => {
@@ -80,8 +78,12 @@ const App = () => {
           setNewNumber('');
         })
         .catch((error) => {
-          console.log('Promise rejected');
-          alert(error);
+          setMessageType('failed__add');
+          setMessage(`${error.response.data.error}`);
+          setTimeout(() => {
+            setMessage(null);
+            setMessageType(null);
+          }, 4000);
         });
     }
   }

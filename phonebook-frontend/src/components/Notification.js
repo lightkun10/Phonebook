@@ -35,5 +35,11 @@ export default Notification = ({ message, type }) => {
         {message}
       </div>
     )
+  } else if (type === 'failed__add') {
+    return (
+      <div style={failedStyle} className="failed-add">
+        {message}
+      </div>
+    )
   }
 }
