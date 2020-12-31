@@ -5,6 +5,7 @@ const Person = require('./models/person');
 const { performance } = require('perf_hooks');
 const morgan = require('morgan');
 const cors = require('cors');
+const { response } = require('express');
 
 app.use(express.json());
 app.use(express.static('build'));
@@ -55,14 +56,16 @@ app.get('/api/persons', (req, res) => {
 });
 
 app.get('/info', (req, res) => {
-  let count = phonebook.persons.length;
-
-  res.send(`
-    Phonebook has info for ${count} people
-    <br></br>
-    ${new Date()}
-  `
-  )
+  let count;
+  Person.find({})
+    .then((result) => {
+      res.send(`
+        Phonebook has info for ${result.length} people
+        <br></br>
+        ${new Date()}
+      `
+      )
+    });
 });
 
 app.get('/api/persons/:id', (req, res) => {
@@ -88,16 +91,31 @@ const generateId = () => {
   return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
 }
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body;
+  // console.log(body);
+  Person.find({ name: body.name })
+    .then((result) => {
+      if (result.length > 0) {
+        // console.log("Duplicate name on db, updating number...");
+        Person.findOneAndUpdate({ name: body.name }, { number: body.number })
+          .then((result) => {
+            res.status(200).send(`Updated ${result.name}'s number`).end();
+          })
+          .catch((error) => next(error));
+      }
+      else {
+        // console.log("Create new entry number...");
+        const person = new Person({
+          name: body.name,
+          number: body.number,
+        });
 
-  const person = new Person({
-    name: body.name,
-    number: body.number
-  });
-
-  // console.log(person);
-  person.save().then((savedPerson) => res.json(savedPerson));
+        person.save().then((savedPerson) => {
+          res.json(savedPerson);
+        })
+      }
+    });
 });
 
 /********************
@@ -116,6 +134,8 @@ const errorHandler = (error, req, res, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' });
+  } else if (error) {
+    return response.status(400).send({ error: 'something wrong happened.' });
   }
 
   next(error);
