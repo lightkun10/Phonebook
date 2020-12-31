@@ -94,28 +94,29 @@ const generateId = () => {
 app.post('/api/persons', (req, res, next) => {
   const body = req.body;
   // console.log(body);
-  Person.find({ name: body.name })
-    .then((result) => {
-      if (result.length > 0) {
-        // console.log("Duplicate name on db, updating number...");
-        Person.findOneAndUpdate({ name: body.name }, { number: body.number })
-          .then((result) => {
-            res.status(200).send(`Updated ${result.name}'s number`).end();
-          })
-          .catch((error) => next(error));
-      }
-      else {
-        // console.log("Create new entry number...");
-        const person = new Person({
-          name: body.name,
-          number: body.number,
-        });
+  // Person.find({ name: body.name })
+  //   .then((result) => {
+  //     const person = new Person({
+  //       name: body.name,
+  //       number: body.number,
+  //     });
 
-        person.save().then((savedPerson) => {
-          res.json(savedPerson);
-        })
-      }
-    });
+  //     person.save().then((savedPerson) => {
+  //       res.json(savedPerson);
+  //     })
+  //   });
+
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  });
+  
+  person.save()
+    .then((savedPerson) => savedPerson.toJSON())
+    .then((savedAndFormattedPerson) => {
+      res.json(savedAndFormattedPerson);
+    })
+    .catch((error) => next(error));
 });
 
 /********************
@@ -133,9 +134,9 @@ const errorHandler = (error, req, res, next) => {
   console.error(error.message);
 
   if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' });
-  } else if (error) {
-    return response.status(400).send({ error: 'something wrong happened.' });
+    return res.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message });
   }
 
   next(error);

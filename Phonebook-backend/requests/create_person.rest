@@ -1,7 +1,12 @@
 POST http://localhost:3001/api/persons
 Content-Type: application/json
 
+# {
+#   "name": "Khalid Hassan",
+#   "number": "242-3711871"
+# }
+
 {
-  "name": "Khalid Hassan",
-  "number": "242-3711871"
+  "name": "Bo",
+  "number": "667-212348"
 }
