@@ -48,10 +48,12 @@ app.get('/', (req, res) => {
   res.send('Phonebook');
 })
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
   // res.json(phonebook['persons']);
   Person.find({}).then((people) => {
     res.json(people);
+  }).catch((error) => {
+    next(error);
   })
 });
 
