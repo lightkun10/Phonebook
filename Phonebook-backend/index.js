@@ -68,12 +68,19 @@ app.get('/info', (req, res) => {
     });
 });
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
   // const id = Number(req.params.id);
-
-  Person.findById(req.params.id).then((p) => {
-    res.json(p);
-  })
+  Person.findById(req.params.id)
+    .then((p) => {
+      if (p) {
+        res.json(p);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -115,6 +122,30 @@ app.post('/api/persons', (req, res, next) => {
     .then((savedPerson) => savedPerson.toJSON())
     .then((savedAndFormattedPerson) => {
       res.json(savedAndFormattedPerson);
+    })
+    .catch((error) => next(error));
+});
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body;
+
+  if (body.number.split('').filter((num) => num >= '0' && num <= 9)
+      .length < 8) {
+    return next({
+      name: 'ValidationError',
+			message: 'number must be at least 8 digits.',
+    });
+  }
+
+  const updatePerson = { number: body.number, };
+
+  Person.findByIdAndUpdate(req.params.id, updatePerson, { new: true })
+    .then((updatedPerson) => {
+      if (updatedPerson) {
+        res.json(updatedPerson);
+      } else {
+        res.status(404).end();
+      }
     })
     .catch((error) => next(error));
 });
